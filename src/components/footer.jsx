@@ -12,7 +12,7 @@ const Footer = (props) => {
       style={customFooterStyle}
     >
       <UtilityComponent tags={props.utilityTags}/>
-      <h2 className="text-2xl">SCISSORS</h2>
+      <h2 className="text-2xl">MAIN</h2>
       <footer className="shadow-lg d-flex align-items-center justify-content-center footer-nav-container">
         <FooterNav onClick={props.onClick}/>
       </footer>
