@@ -1,0 +1,43 @@
+version: 1
+
+# env:
+#   variables:
+#     NODE_ENV: production
+
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo ">>> Exporting environment variables ..."
+        - cp .env.example .env
+        - sed "s|^REACT_APP_ADMIN_ENDPOINT=.*$|REACT_APP_ADMIN_ENDPOINT=\"${REACT_APP_ADMIN_ENDPOINT}\"|g" -i .env
+        - sed "s|^REACT_APP_API_ENDPOINT=.*$|REACT_APP_API_ENDPOINT=\"${REACT_APP_API_ENDPOINT}\"|g" -i .env
+        - sed "s|^REACT_APP_SOCKET_ENDPOINT=.*$|REACT_APP_SOCKET_ENDPOINT=\"${REACT_APP_SOCKET_ENDPOINT}\"|g" -i .env
+        - sed "s|^REACT_APP_GOOGLE_MAPS_KEY=.*$|REACT_APP_GOOGLE_MAPS_KEY=\"${REACT_APP_GOOGLE_MAPS_KEY}\"|g" -i .env
+        - sed "s|^CLOUDFLARE_ZONE_ID=.*$|CLOUDFLARE_ZONE_ID=\"${CLOUDFLARE_ZONE_ID}\"|g" -i .env
+        - sed "s|^CLOUDFLARE_AUTH_EMAIL=.*$|CLOUDFLARE_AUTH_EMAIL=\"${CLOUDFLARE_AUTH_EMAIL}\"|g" -i .env
+        - sed "s|^CLOUDFLARE_AUTH_KEY=.*$|CLOUDFLARE_AUTH_KEY=\"${CLOUDFLARE_AUTH_KEY}\"|g" -i .env
+        - rm -rf node_modules
+        - npm install
+    build:
+      commands:
+        - echo ">>> Building project ..."
+        - npm run app:build
+        - echo ">>> Updating version ..."
+        - export BUILD_VERSION="v$(date +%Y.%_m.%_d | sed 's/ //g')"
+        - export REACT_VERSION="$(cat ./node_modules/react/package.json | grep version --no-filename -E | tail -n 1 | sed 's/\s//g' | cut -c11-100 | sed 's/"//g')"
+        - sed -i "s/{{build_version}}/$BUILD_VERSION/g" "build/index.html"
+        - sed -i "s/{{react_version}}/$REACT_VERSION/g" "build/index.html"
+    postBuild:
+      commands:
+        - echo ">>> Cleaning cloudflare cache ..."
+        - npm run app:purge-cache
+
+  artifacts:
+    baseDirectory: build
+    files:
+      - '**/*'
+
+  # cache:
+  #   paths:
+  #     - node_modules/**/*
